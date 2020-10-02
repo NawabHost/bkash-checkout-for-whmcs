@@ -9,8 +9,8 @@ platform.
 
 ```
  modules/gateways/
-  |- callback/gatewaymodule.php
-  |  gatewaymodule.php
+  |- callback/bkash.php
+  |  bkash.php
 ```
 
 ## Minimum Requirements ##
