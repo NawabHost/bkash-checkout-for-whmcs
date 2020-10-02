@@ -16,16 +16,16 @@
         "filename": "logo.png"
     },
     "support": {
-        "homepage": "https:/aminul.net/project/bkash-for-whmcs/", 
-        "learn_more": "https:/aminul.net/project/bkash-for-whmcs/",
+        "homepage": "https://aminul.net/project/bkash-for-whmcs/", 
+        "learn_more": "https://aminul.net/project/bkash-for-whmcs/",
         "email": "me@aminul.net", 
-        "support_url": "https:/aminul.net/project/bkash-for-whmcs/", 
-        "docs_url": "https:/aminul.net/project/bkash-for-whmcs/"
+        "support_url": "https://aminul.net/project/bkash-for-whmcs/", 
+        "docs_url": "https://aminul.net/project/bkash-for-whmcs/"
     },
     "authors": [
         {
             "name": "Aminul Islam",
-            "homepage": "https:/aminul.net/"
+            "homepage": "https://aminul.net/"
         }
     ]
 }
