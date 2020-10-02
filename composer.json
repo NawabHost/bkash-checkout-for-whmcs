@@ -1,0 +1,25 @@
+{
+    "name": "aminulbd/bkash-for-whmcs",
+    "description": "bKash Checkout Payment Gateway for WHMCS",
+    "keywords": [
+        "whmcs",
+        "bkash",
+        "bkash checkout",
+        "gateway module"
+    ],
+    "homepage": "http://www.aminul.net/project/bkash-for-whmcs",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aminul Islam",
+            "email": "me@aminul.net",
+            "homepage": "https://aminul.net/",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "me@aminul.net",
+        "forum": "https://aminul.net/",
+        "wiki": "https://aminul.net/"
+    }
+}

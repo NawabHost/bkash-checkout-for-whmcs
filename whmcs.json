@@ -1,0 +1,31 @@
+{
+    "schema": "1.0.0",
+    "type": "whmcs-gateways",
+    "name": "bkash-gateway-module",
+    "license": "MIT",
+    "category": "gateway",
+    "description": {
+        "name": "bKash Checkout Payment Gateway",
+        "tagline": "Easily collect your payment by using bKash checkout in your WHMCS Billing.",
+        "long": "",
+        "features": [
+            "WHMCS 8 Support",
+        ]
+    },
+    "logo": {
+        "filename": "logo.png"
+    },
+    "support": {
+        "homepage": "https:/aminul.net/project/bkash-for-whmcs/", 
+        "learn_more": "https:/aminul.net/project/bkash-for-whmcs/",
+        "email": "me@aminul.net", 
+        "support_url": "https:/aminul.net/project/bkash-for-whmcs/", 
+        "docs_url": "https:/aminul.net/project/bkash-for-whmcs/"
+    },
+    "authors": [
+        {
+            "name": "Aminul Islam",
+            "homepage": "https:/aminul.net/"
+        }
+    ]
+}
