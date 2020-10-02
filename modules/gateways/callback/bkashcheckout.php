@@ -504,8 +504,8 @@ class bKashCheckout
         return logTransaction(
             $this->gatewayParams['name'],
             [
-                'bkash' => $payload,
-                'post'  => $this->request->request->all(),
+                $this->gatewayModuleName => $payload,
+                'request_data'           => $this->request->request->all(),
             ],
             $payload['transactionStatus']
         );
@@ -565,14 +565,12 @@ class bKashCheckout
                 return [
                     'status'  => 'success',
                     'message' => 'The payment has been successfully verified.',
-                    'data'    => $trxAddResult,
                 ];
             }
 
             return [
                 'status'  => 'error',
                 'message' => 'Unable to create transaction.',
-                'data'    => $trxAddResult,
             ];
         }
 

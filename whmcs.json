@@ -1,7 +1,7 @@
 {
     "schema": "1.0.0",
     "type": "whmcs-gateways",
-    "name": "bkash-gateway-module",
+    "name": "bkash-checkout",
     "license": "MIT",
     "category": "gateway",
     "description": {

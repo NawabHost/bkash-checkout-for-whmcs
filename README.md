@@ -1,14 +1,14 @@
 ## bKash Checkout Payment Gateway for WHMCS
 
-bKash Checkout modules allow you to integrate payment solutions with the WHMCS automation platform.
+bKash Checkout module allow you to integrate payment solutions with the WHMCS automation platform.
 
 
 ### Installation
 
 ```
  modules/gateways/
-  |- callback/bkash.php
-  |  bkash.php
+  |- callback/bkashcheckout.php
+  |  bkashcheckout.php
 ```
 
 ## Requirements

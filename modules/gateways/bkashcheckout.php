@@ -4,22 +4,22 @@ if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
 
-function bkash_MetaData()
+function bkashcheckout_MetaData()
 {
     return [
-        'DisplayName'                 => 'bKash Merchant',
+        'DisplayName'                 => 'bKash merchant (Checkout)',
         'APIVersion'                  => '1.1',
         'DisableLocalCreditCardInput' => true,
         'TokenisedStorage'            => false,
     ];
 }
 
-function bkash_config()
+function bkashcheckout_config()
 {
     return [
         'FriendlyName' => [
             'Type'  => 'System',
-            'Value' => 'bKash Merchant',
+            'Value' => 'bKash Merchant (Checkout)',
         ],
         'username'     => [
             'FriendlyName' => 'Username',
@@ -64,18 +64,18 @@ function bkash_config()
     ];
 }
 
-function bkash_link($params)
+function bkashcheckout_link($params)
 {
-    $bkashScripts = bkash_scriptsHandle($params);
+    $bkashScripts = bkashcheckout_scriptsHandle($params);
     $markup       = <<<HTML
-    <button class="btn btn-primary" id="bkash_button_real"><i class="fas fa-circle-notch fa-spin hidden" style="margin-right: 5px"></i>Pay using bKash</button>
+    <button class="btn btn-primary" id="bkashcheckout_button_real"><i class="fas fa-circle-notch fa-spin hidden" style="margin-right: 5px"></i>Pay using bKash</button>
     <button class="hidden" id="bKash_button"></button>
     $bkashScripts
 HTML;
     return $markup;
 }
 
-function bkash_scriptsHandle($params)
+function bkashcheckout_scriptsHandle($params)
 {
     $script = 'https://scripts.pay.bka.sh/versions/1.2.0-beta/checkout/bKash-checkout.js';
     if (!empty($params['sandbox'])) {
@@ -93,7 +93,7 @@ function bkash_scriptsHandle($params)
         var apiUrl = "$apiUrl";
         var invUrl = "$invUrl";
         var invId = "$invId";
-        var bKashBtnReal = $('#bkash_button_real');
+        var bKashBtnReal = $('#bkashcheckout_button_real');
 
         bKashBtnReal.on('click', function(e) {
             e.preventDefault();
