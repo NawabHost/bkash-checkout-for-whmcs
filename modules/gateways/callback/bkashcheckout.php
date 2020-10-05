@@ -1,8 +1,6 @@
 <?php
 
 use Carbon\Carbon;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\HttpFoundation\Request;
 use WHMCS\Database\Capsule;
 
@@ -78,9 +76,9 @@ class bKashCheckout
     public $total;
 
     /**
-     * @var \GuzzleHttp\Client
+     * @var string
      */
-    protected $httpClient;
+    protected $baseUrl;
 
     /**
      * @var \Symfony\Component\HttpFoundation\Request
@@ -98,7 +96,6 @@ class bKashCheckout
     function __construct()
     {
         $this->setGateway();
-        $this->setHttpClient();
         $this->setRequest();
         $this->setInvoice();
     }
@@ -133,6 +130,8 @@ class bKashCheckout
             'appKey'    => $this->gatewayParams['appKey'],
             'appSecret' => $this->gatewayParams['appSecret'],
         ];
+
+        $this->baseUrl = $this->isSandbox ? 'https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/' : 'https://checkout.pay.bka.sh/v1.2.0-beta/checkout/';
     }
 
     /**
@@ -141,26 +140,6 @@ class bKashCheckout
     private function setRequest()
     {
         $this->request = Request::createFromGlobals();
-    }
-
-    /**
-     * Set guzzle as HTTP client.
-     */
-    private function setHttpClient()
-    {
-        $bkashUrl = $this->isSandbox ? 'https://checkout.sandbox.bka.sh/v1.2.0-beta/checkout/' : 'https://checkout.pay.bka.sh/v1.2.0-beta/checkout/';
-
-        $this->httpClient = new Client(
-            [
-                'base_uri'    => $bkashUrl,
-                'http_errors' => false,
-                'timeout'     => 30,
-                'headers'     => [
-                    'Content-Type' => 'application/json',
-                    'Accept'       => 'application/json',
-                ],
-            ]
-        );
     }
 
     /**
@@ -229,18 +208,29 @@ class bKashCheckout
     private function grantToken()
     {
         try {
-            $response = $this->httpClient->post('token/grant', [
-                'headers' => [
-                    'username' => $this->credential['username'],
-                    'password' => $this->credential['password'],
+            $context = [
+                'http' => [
+                    'method'  => 'POST',
+                    'header'  => "Content-Type: application/json\r\n" .
+                        "Accept: application/json\r\n" .
+                        "username: {$this->credential['username']}\r\n" .
+                        "password: {$this->credential['password']}\r\n",
+                    'content' => json_encode(
+                        [
+                            'app_key'    => $this->credential['appKey'],
+                            'app_secret' => $this->credential['appSecret'],
+                        ]
+                    ),
+                    'timeout' => 30,
                 ],
-                'json'    => [
-                    'app_key'    => $this->credential['appKey'],
-                    'app_secret' => $this->credential['appSecret'],
-                ],
-            ]);
+            ];
 
-            $data = json_decode($response->getBody()->getContents(), true);
+            $context = stream_context_create($context);
+            $url     = $this->baseUrl . 'token/grant';
+
+            $response = file_get_contents($url, false, $context);
+
+            $data = json_decode($response, true);
 
             if (is_array($data)) {
                 return $data;
@@ -250,7 +240,7 @@ class bKashCheckout
                 'status'  => 'error',
                 'message' => 'Invalid response from bKash API.',
             ];
-        } catch (GuzzleException $exception) {
+        } catch (\Exception $exception) {
             return [
                 'status'  => 'error',
                 'message' => $exception->getMessage(),
@@ -272,68 +262,6 @@ class bKashCheckout
     }
 
     /**
-     * Get refresh token from the memory.
-     *
-     * @return mixed
-     */
-    private function getRefreshToken()
-    {
-        $token = $this->grantToken();
-
-        return (is_array($token) && isset($token['refresh_token'])) ? $token['refresh_token'] : null;
-    }
-
-    /**
-     * Store token in the memory.
-     *
-     * @return boolean
-     */
-    private function storeToken()
-    {
-        // TODO: Implement this
-    }
-
-    /**
-     * Refresh the token.
-     *
-     * @return array
-     */
-    private function refreshToken()
-    {
-        $refreshToken = $this->refreshToken();
-
-        try {
-            $response = $this->httpClient->post('token/refresh', [
-                'headers' => [
-                    'username' => $this->credential['username'],
-                    'password' => $this->credential['password'],
-                ],
-                'json'    => [
-                    'app_key'       => $this->credential['appKey'],
-                    'app_secret'    => $this->credential['appSecret'],
-                    'refresh_token' => $refreshToken,
-                ],
-            ]);
-
-            $data = json_decode($response->getBody()->getContents(), true);
-
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Invalid response from bKash API.',
-            ];
-        } catch (GuzzleException $exception) {
-            return [
-                'status'  => 'error',
-                'message' => $exception->getMessage(),
-            ];
-        }
-    }
-
-    /**
      * Create payment session.
      *
      * @return array
@@ -341,20 +269,29 @@ class bKashCheckout
     public function createPayment()
     {
         try {
-            $response = $this->httpClient->post('payment/create', [
-                'headers' => [
-                    'Authorization' => $this->getToken(),
-                    'X-APP-KEY'     => $this->credential['appKey'],
+            $context = [
+                'http' => [
+                    'method'  => 'POST',
+                    'header'  => "Content-Type: application/json\r\n" .
+                        "Accept: application/json\r\n" .
+                        "Authorization: {$this->getToken()}\r\n" .
+                        "X-APP-KEY: {$this->credential['appKey']}\r\n",
+                    'content' => json_encode(
+                        [
+                            'amount'                => $this->total,
+                            'currency'              => 'BDT',
+                            'intent'                => 'sale',
+                            'merchantInvoiceNumber' => $this->invoice['invoiceid'],
+                        ]
+                    ),
+                    'timeout' => 30,
                 ],
-                'json'    => [
-                    'amount'                => $this->total,
-                    'currency'              => 'BDT',  // TODO: Make dynamic
-                    'intent'                => 'sale', // TODO: Make dynamic
-                    'merchantInvoiceNumber' => $this->invoice['invoiceid'],
-                ],
-            ]);
+            ];
 
-            $data = json_decode($response->getBody()->getContents(), true);
+            $context  = stream_context_create($context);
+            $url      = $this->baseUrl . 'payment/create';
+            $response = file_get_contents($url, false, $context);
+            $data     = json_decode($response, true);
 
             if (is_array($data)) {
                 return $data;
@@ -364,7 +301,7 @@ class bKashCheckout
                 'status'  => 'error',
                 'message' => 'Invalid response from bKash API.',
             ];
-        } catch (GuzzleException $exception) {
+        } catch (\Exception $exception) {
             return [
                 'status'  => 'error',
                 'message' => $exception->getMessage(),
@@ -381,14 +318,21 @@ class bKashCheckout
     {
         $paymentId = $this->request->get('payId');
         try {
-            $response = $this->httpClient->post('payment/execute/' . $paymentId, [
-                'headers' => [
-                    'authorization' => $this->getToken(),
-                    'X-APP-KEY'     => $this->credential['appKey'],
+            $context = [
+                'http' => [
+                    'method'  => 'POST',
+                    'header'  => "Content-Type: application/json\r\n" .
+                        "Accept: application/json\r\n" .
+                        "Authorization: {$this->getToken()}\r\n" .
+                        "X-APP-KEY: {$this->credential['appKey']}\r\n",
+                    'timeout' => 30,
                 ],
-            ]);
+            ];
 
-            $data = json_decode($response->getBody()->getContents(), true);
+            $context  = stream_context_create($context);
+            $url      = $this->baseUrl . 'payment/execute/' . $paymentId;
+            $response = file_get_contents($url, false, $context);
+            $data     = json_decode($response, true);
 
             if (is_array($data)) {
                 return $data;
@@ -399,77 +343,7 @@ class bKashCheckout
                 'message' => 'Invalid response from bKash API.',
             ];
 
-        } catch (GuzzleException $exception) {
-            return [
-                'status'  => 'error',
-                'message' => $exception->getMessage(),
-            ];
-        }
-    }
-
-    /**
-     * Query the payment by ID.
-     *
-     * @return array
-     */
-    private function queryPayment()
-    {
-        $paymentId = $this->request->get('payId');
-        try {
-            $response = $this->httpClient->get('payment/query/' . $paymentId, [
-                'headers' => [
-                    'Authorization' => $this->getToken(),
-                    'X-APP-KEY'     => $this->credential['appKey'],
-                ],
-            ]);
-
-            $data = json_decode($response->getBody()->getContents(), true);
-
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Invalid response from bKash API.',
-            ];
-
-        } catch (GuzzleException $exception) {
-            return [
-                'status'  => 'error',
-                'message' => $exception->getMessage(),
-            ];
-        }
-    }
-
-    /**
-     * Void payment by the ID.
-     *
-     * @return array
-     */
-    private function voidPayment()
-    {
-        $paymentId = $this->request->get('payId');
-        try {
-            $response = $this->httpClient->post('payment/void/' . $paymentId, [
-                'headers' => [
-                    'Authorization' => $this->getToken(),
-                    'X-APP-KEY'     => $this->credential['appKey'],
-                ],
-            ]);
-
-            $data = json_decode($response->getBody()->getContents(), true);
-
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Invalid response from bKash API.',
-            ];
-
-        } catch (GuzzleException $exception) {
+        } catch (\Exception $exception) {
             return [
                 'status'  => 'error',
                 'message' => $exception->getMessage(),
