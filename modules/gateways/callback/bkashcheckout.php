@@ -135,7 +135,7 @@ class bKashCheckout
     }
 
     /**
-     * Get and set request
+     * Set request.
      */
     private function setRequest()
     {
@@ -158,7 +158,7 @@ class bKashCheckout
     }
 
     /**
-     * Set currency
+     * Set currency.
      */
     private function setCurrency()
     {
@@ -185,7 +185,7 @@ class bKashCheckout
     }
 
     /**
-     * Set Fee.
+     * Set fee.
      */
     private function setFee()
     {
@@ -193,7 +193,7 @@ class bKashCheckout
     }
 
     /**
-     * Set Total.
+     * Set total.
      */
     private function setTotal()
     {
@@ -201,62 +201,31 @@ class bKashCheckout
     }
 
     /**
-     * Grant token from bKash.
-     *
-     * @return array
-     */
-    private function grantToken()
-    {
-        try {
-            $context = [
-                'http' => [
-                    'method'  => 'POST',
-                    'header'  => "Content-Type: application/json\r\n" .
-                        "Accept: application/json\r\n" .
-                        "username: {$this->credential['username']}\r\n" .
-                        "password: {$this->credential['password']}\r\n",
-                    'content' => json_encode(
-                        [
-                            'app_key'    => $this->credential['appKey'],
-                            'app_secret' => $this->credential['appSecret'],
-                        ]
-                    ),
-                    'timeout' => 30,
-                ],
-            ];
-
-            $context = stream_context_create($context);
-            $url     = $this->baseUrl . 'token/grant';
-
-            $response = file_get_contents($url, false, $context);
-
-            $data = json_decode($response, true);
-
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Invalid response from bKash API.',
-            ];
-        } catch (\Exception $exception) {
-            return [
-                'status'  => 'error',
-                'message' => $exception->getMessage(),
-            ];
-        }
-
-    }
-
-    /**
-     * Get token from memory.
+     * Grant and get token from API.
      *
      * @return mixed
      */
     private function getToken()
     {
-        $token = $this->grantToken();
+        $fields   = [
+            'app_key'    => $this->credential['appKey'],
+            'app_secret' => $this->credential['appSecret'],
+        ];
+        $context  = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "username: {$this->credential['username']}\r\n" .
+                    "password: {$this->credential['password']}\r\n",
+                'content' => json_encode($fields),
+                'timeout' => 30,
+            ],
+        ];
+        $context  = stream_context_create($context);
+        $url      = $this->baseUrl . 'token/grant';
+        $response = file_get_contents($url, false, $context);
+        $token    = json_decode($response, true);
 
         return (is_array($token) && isset($token['id_token'])) ? $token['id_token'] : null;
     }
@@ -268,45 +237,36 @@ class bKashCheckout
      */
     public function createPayment()
     {
-        try {
-            $context = [
-                'http' => [
-                    'method'  => 'POST',
-                    'header'  => "Content-Type: application/json\r\n" .
-                        "Accept: application/json\r\n" .
-                        "Authorization: {$this->getToken()}\r\n" .
-                        "X-APP-KEY: {$this->credential['appKey']}\r\n",
-                    'content' => json_encode(
-                        [
-                            'amount'                => $this->total,
-                            'currency'              => 'BDT',
-                            'intent'                => 'sale',
-                            'merchantInvoiceNumber' => $this->invoice['invoiceid'],
-                        ]
-                    ),
-                    'timeout' => 30,
-                ],
-            ];
+        $fields   = [
+            'amount'                => $this->total,
+            'currency'              => 'BDT',
+            'intent'                => 'sale',
+            'merchantInvoiceNumber' => $this->invoice['invoiceid'],
+        ];
+        $context  = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: {$this->getToken()}\r\n" .
+                    "X-APP-KEY: {$this->credential['appKey']}\r\n",
+                'content' => json_encode($fields),
+                'timeout' => 30,
+            ],
+        ];
+        $context  = stream_context_create($context);
+        $url      = $this->baseUrl . 'payment/create';
+        $response = file_get_contents($url, false, $context);
+        $data     = json_decode($response, true);
 
-            $context  = stream_context_create($context);
-            $url      = $this->baseUrl . 'payment/create';
-            $response = file_get_contents($url, false, $context);
-            $data     = json_decode($response, true);
-
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Invalid response from bKash API.',
-            ];
-        } catch (\Exception $exception) {
-            return [
-                'status'  => 'error',
-                'message' => $exception->getMessage(),
-            ];
+        if (is_array($data)) {
+            return $data;
         }
+
+        return [
+            'status'  => 'error',
+            'message' => 'Invalid response from bKash API.',
+        ];
     }
 
     /**
@@ -317,38 +277,30 @@ class bKashCheckout
     private function executePayment()
     {
         $paymentId = $this->request->get('payId');
-        try {
-            $context = [
-                'http' => [
-                    'method'  => 'POST',
-                    'header'  => "Content-Type: application/json\r\n" .
-                        "Accept: application/json\r\n" .
-                        "Authorization: {$this->getToken()}\r\n" .
-                        "X-APP-KEY: {$this->credential['appKey']}\r\n",
-                    'timeout' => 30,
-                ],
-            ];
+        $context   = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: {$this->getToken()}\r\n" .
+                    "X-APP-KEY: {$this->credential['appKey']}\r\n",
+                'timeout' => 30,
+            ],
+        ];
 
-            $context  = stream_context_create($context);
-            $url      = $this->baseUrl . 'payment/execute/' . $paymentId;
-            $response = file_get_contents($url, false, $context);
-            $data     = json_decode($response, true);
+        $context  = stream_context_create($context);
+        $url      = $this->baseUrl . 'payment/execute/' . $paymentId;
+        $response = file_get_contents($url, false, $context);
+        $data     = json_decode($response, true);
 
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Invalid response from bKash API.',
-            ];
-
-        } catch (\Exception $exception) {
-            return [
-                'status'  => 'error',
-                'message' => $exception->getMessage(),
-            ];
+        if (is_array($data)) {
+            return $data;
         }
+
+        return [
+            'status'  => 'error',
+            'message' => 'Invalid response from bKash API.',
+        ];
     }
 
     /**
@@ -480,5 +432,4 @@ switch ($bKashCheckout->request->get('action')) {
 }
 
 header('Content-Type: application/json');
-
-echo json_encode($response);
+die(json_encode($response));
