@@ -25,4 +25,3 @@ Support all major WHMCS version including version 6, 7 & 8.
 
 - Better support for any template
 - Use bKash logo for payment button
-- Store fee record

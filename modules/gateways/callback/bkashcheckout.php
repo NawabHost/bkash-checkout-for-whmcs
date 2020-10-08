@@ -93,7 +93,7 @@ class bKashCheckout
     /**
      * bKashCheckout constructor.
      */
-    function __construct()
+    public function __construct()
     {
         $this->setGateway();
         $this->setRequest();
@@ -298,8 +298,9 @@ class bKashCheckout
         }
 
         return [
-            'status'  => 'error',
-            'message' => 'Invalid response from bKash API.',
+            'status'    => 'error',
+            'message'   => 'Invalid response from bKash API.',
+            'errorCode' => 'irs',
         ];
     }
 
@@ -351,6 +352,8 @@ class bKashCheckout
             'transid'   => $trxId,
             'gateway'   => $this->gatewayModuleName,
             'date'      => Carbon::now()->toDateTimeString(),
+            'amount'    => $this->due,
+            'fees'      => $this->fee,
         ];
         $add    = localAPI('AddInvoicePayment', $fields);
 
@@ -373,6 +376,7 @@ class bKashCheckout
                 return [
                     'status'  => 'error',
                     'message' => 'The transaction has been already used.',
+                    'code'    => 'tau',
                 ];
             }
 
@@ -380,6 +384,7 @@ class bKashCheckout
                 return [
                     'status'  => 'error',
                     'message' => 'You\'ve paid less than amount is required.',
+                    'code'    => 'lpa',
                 ];
             }
 
@@ -393,16 +398,12 @@ class bKashCheckout
                     'message' => 'The payment has been successfully verified.',
                 ];
             }
-
-            return [
-                'status'  => 'error',
-                'message' => 'Unable to create transaction.',
-            ];
         }
 
         return [
             'status'  => 'error',
             'message' => 'Payment validation error.',
+            'code'    => $execute['errorCode'],
         ];
     }
 }
