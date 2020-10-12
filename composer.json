@@ -22,5 +22,8 @@
     "email": "me@aminul.net",
     "forum": "https://aminul.net/",
     "wiki": "https://aminul.net/"
+  },
+  "require": {
+    "ext-json": "*"
   }
 }
