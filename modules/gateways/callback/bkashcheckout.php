@@ -164,13 +164,13 @@ class bKashCheckout
     {
         $this->gatewayCurrency  = (int)$this->gatewayParams['convertto'];
         $this->customerCurrency = Capsule::table('tblclients')
-                                         ->where('id', '=', $this->invoice['userid'])
-                                         ->value('currency');
+            ->where('id', '=', $this->invoice['userid'])
+            ->value('currency');
 
         if (!empty($this->gatewayCurrency) && ($this->customerCurrency !== $this->gatewayCurrency)) {
             $this->convoRate = Capsule::table('tblcurrencies')
-                                      ->where('id', '=', $this->gatewayCurrency)
-                                      ->value('rate');
+                ->where('id', '=', $this->gatewayCurrency)
+                ->value('rate');
         } else {
             $this->convoRate = 1;
         }

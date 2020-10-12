@@ -147,7 +147,7 @@ function bkashcheckout_errors($vars)
 
     if (!empty($_REQUEST['bkashErrorCode'])) {
         $error   = isset($errors[$_REQUEST['bkashErrorCode']]) ? $errors[$_REQUEST['bkashErrorCode']] : 'Unknown error!';
-        $message = '<div class="alert alert-danger" style="margin-top: 10px;" role="alert">'. $error .'</div>';
+        $message = '<div class="alert alert-danger" style="margin-top: 10px;" role="alert">' . $error . '</div>';
     }
 
     return $message;
