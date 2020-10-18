@@ -158,7 +158,7 @@ function bkashcheckout_link($params)
     $bkashScripts = bkashcheckout_scriptsHandle($params);
     $errorMessage = bkashcheckout_errors($params);
     $markup       = <<<HTML
-    <button class="btn btn-primary" id="bkashcheckout_button_real"><i class="fas fa-circle-notch fa-spin hidden" style="margin-right: 5px"></i>Pay using bKash</button>
+    <button class="btn btn-primary" id="bkashcheckout_button_real"><i class="fas fa-circle-notch fa-spin hidden" style="margin-right: 5px"></i>Pay with bKash</button>
     <button class="hidden" id="bKash_button"></button>
     $bkashScripts
     $errorMessage
