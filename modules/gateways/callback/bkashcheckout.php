@@ -3,6 +3,7 @@
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\Request;
 use WHMCS\Database\Capsule;
+use WHMCS\ClientArea;
 
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
@@ -410,6 +411,10 @@ class bKashCheckout
 
 if (!$_SERVER['REQUEST_METHOD'] === 'POST') {
     die("Direct access forbidden.");
+}
+
+if ((new ClientArea())->isLoggedIn()) {
+    die("You will need to login first.");
 }
 
 $bKashCheckout = bKashCheckout::init();
