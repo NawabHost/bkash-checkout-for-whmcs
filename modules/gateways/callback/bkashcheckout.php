@@ -413,7 +413,7 @@ if (!$_SERVER['REQUEST_METHOD'] === 'POST') {
     die("Direct access forbidden.");
 }
 
-if ((new ClientArea())->isLoggedIn()) {
+if (!(new ClientArea())->isLoggedIn()) {
     die("You will need to login first.");
 }
 
