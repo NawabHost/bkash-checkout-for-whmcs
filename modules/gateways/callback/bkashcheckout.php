@@ -158,8 +158,8 @@ class bKashCheckout
      */
     private function setCurrency()
     {
-        $this->gatewayCurrency  = (int)$this->gatewayParams['convertto'];
-        $this->customerCurrency = \WHMCS\Database\Capsule::table('tblclients')
+        $this->gatewayCurrency  = (int) $this->gatewayParams['convertto'];
+        $this->customerCurrency = (int) \WHMCS\Database\Capsule::table('tblclients')
             ->where('id', '=', $this->invoice['userid'])
             ->value('currency');
 
