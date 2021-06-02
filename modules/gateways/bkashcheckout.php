@@ -155,11 +155,18 @@ function bkashcheckout_errors($vars)
 
 function bkashcheckout_link($params)
 {
+    $bkashLogo = 'https://scripts.pay.bka.sh/resources/img/bkash_payment.png';
     $bkashScripts = bkashcheckout_scriptsHandle($params);
     $errorMessage = bkashcheckout_errors($params);
     $markup       = <<<HTML
-    <button class="btn btn-primary" id="bkashcheckout_button_real"><i class="fas fa-circle-notch fa-spin d-none hidden" style="margin-right: 5px"></i>Pay with bKash</button>
-    <button class="hidden d-none" id="bKash_button"></button>
+    <img id="bkashcheckout_button_real" src="$bkashLogo">
+    <button id="bKash_button"></button>
+    <style type="text/css">
+        #bkashcheckout_button_real { max-width: 175px; height: auto;}
+        #bkashcheckout_button_real:hover { cursor: pointer; }
+        #bkashcheckout_button_real.loading { opacity: 0.5; pointer-events: none;}
+        #bKash_button { display: none; }
+    </style>
     $bkashScripts
     $errorMessage
 HTML;
@@ -188,8 +195,7 @@ function bkashcheckout_scriptsHandle($params)
 
         bKashBtnReal.on('click', function(e) {
             e.preventDefault();
-            bKashBtnReal.attr('disabled', 'disabled');
-            $('i', bKashBtnReal).removeClass('hidden d-none');
+            bKashBtnReal.addClass('loading');
 
             $.ajax({
                 method: "POST",
@@ -232,7 +238,7 @@ function bkashcheckout_scriptsHandle($params)
                         if (vres.status === 'success') {
                             window.location = invUrl + '&paymentsuccess=true';
                         } else {
-                            window.location = invUrl + '&paymentfailed=true&bkashErrorCode=' + vres.code;
+                            window.location = invUrl + '&paymentfailed=true&bkashErrorCode=' + vres.errorCode;
                         }
                     }).fail(function() {
                         bKash.execute().onError();

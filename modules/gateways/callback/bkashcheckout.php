@@ -237,7 +237,7 @@ class bKashCheckout
             'amount'                => $this->total,
             'currency'              => 'BDT',
             'intent'                => 'sale',
-            'merchantInvoiceNumber' => $this->invoice['invoiceid'],
+            'merchantInvoiceNumber' => $this->invoice['invoiceid'] . '-' . rand(1000000, 9999999),
         ];
         $context  = [
             'http' => [
@@ -260,8 +260,9 @@ class bKashCheckout
         }
 
         return [
-            'status'  => 'error',
-            'message' => 'Invalid response from bKash API.',
+            'status'    => 'error',
+            'message'   => 'Invalid response from bKash API.',
+            'errorCode' => 'irs',
         ];
     }
 
@@ -393,32 +394,34 @@ class bKashCheckout
      */
     public function makeTransaction()
     {
-        $this->executePayment();
+        $executePayment = $this->executePayment();
         
-        $queryPayment =  $this->queryPayment();
+        if (!isset($executePayment['transactionStatus'])) {
+            $executePayment = $this->queryPayment();
+        }
 
-        if (isset($queryPayment['transactionStatus']) && $queryPayment['transactionStatus'] === 'Completed') {
-            $existing = $this->checkTransaction($queryPayment['trxID']);
+        if (isset($executePayment['transactionStatus']) && $executePayment['transactionStatus'] === 'Completed') {
+            $existing = $this->checkTransaction($executePayment['trxID']);
 
             if ($existing['totalresults'] > 0) {
                 return [
-                    'status'  => 'error',
-                    'message' => 'The transaction has been already used.',
-                    'code'    => 'tau',
+                    'status'    => 'error',
+                    'message'   => 'The transaction has been already used.',
+                    'errorCode' => 'tau',
                 ];
             }
 
-            if ($queryPayment['amount'] < $this->total) {
+            if ($executePayment['amount'] < $this->total) {
                 return [
-                    'status'  => 'error',
-                    'message' => 'You\'ve paid less than amount is required.',
-                    'code'    => 'lpa',
+                    'status'    => 'error',
+                    'message'   => 'You\'ve paid less than amount is required.',
+                    'errorCode' => 'lpa',
                 ];
             }
 
-            $this->logTransaction($queryPayment);
+            $this->logTransaction($executePayment);
 
-            $trxAddResult = $this->addTransaction($queryPayment['trxID']);
+            $trxAddResult = $this->addTransaction($executePayment['trxID']);
 
             if ($trxAddResult['result'] === 'success') {
                 return [
@@ -428,11 +431,7 @@ class bKashCheckout
             }
         }
 
-        return [
-            'status'  => 'error',
-            'message' => 'Payment validation error.',
-            'code'    => $queryPayment['errorCode'],
-        ];
+        return $executePayment;
     }
 }
 
