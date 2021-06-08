@@ -206,6 +206,8 @@ function bkashcheckout_scriptsHandle($params)
                 }
             }).done(function(response) {
                 bkashWhmcsHandle(response);
+            }).fail(function() {
+                window.location = invUrl + '&paymentfailed=true&bkashErrorCode=500';
             });
         })
 
@@ -222,7 +224,7 @@ function bkashcheckout_scriptsHandle($params)
                         bKash.create().onSuccess(params);
                     } else {
                         bKash.create().onError();
-                        window.location = invUrl + '&paymentfailed=true&bkashErrorCode=500';
+                        window.location = invUrl + '&paymentfailed=true&bkashErrorCode=' + params.errorCode;
                     }
                 },
                 executeRequestOnAuthorization: function () {
