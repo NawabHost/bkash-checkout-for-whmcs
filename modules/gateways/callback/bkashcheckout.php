@@ -396,7 +396,7 @@ class bKashCheckout
     {
         $executePayment = $this->executePayment();
         
-        if (!isset($executePayment['transactionStatus'])) {
+        if (!isset($executePayment['transactionStatus']) && !isset($executePayment['errorCode'])) {
             $executePayment = $this->queryPayment();
         }
 
