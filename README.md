@@ -1,4 +1,4 @@
-# bKash Merchant Checkout Payment Gateway for WHMCS
+# bKash Checkout Payment for WHMCS
 
 bKash Merchant Checkout module allow you to integrate payment solutions with the WHMCS automation platform.
 
